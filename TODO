@@ -1,0 +1,7 @@
+Tclwinrm v1.0 TODOs
+
+- test https
+- support more authentication methods besides Basic
+- bulletproof error handling
+- destroy connection object
+- use Tcl http package?

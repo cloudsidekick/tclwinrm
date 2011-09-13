@@ -1,0 +1,164 @@
+Tclwinrm v1.0 
+
+------------------------------------------
+Description 
+------------------------------------------
+
+Tclwinrm is an opensource tcl interface to the Microsoft Windows Remote Management protocol
+using remote shell. Typical uses for Tclwinrm:
+
+	- manage Windows Servers from Linux
+	- running Windows / DOS commands on Windows Servers
+	- running Powershell scripts remotely
+	- configuring or installing software
+	- starting or stopping Windows services
+	- custom application monitoring
+	- general administration or automation
+	- and so on ...
+
+For more information on Winrm and Remote Shell:
+
+http://msdn.microsoft.com/en-us/library/aa384426%28v=vs.85%29.aspx
+
+A Google search will provide various blog postings on setting up
+winrm on Windows Servers. 
+
+Here is a link on setting it up on Windows Server Core 2008 R2:
+
+http://www.cloudsidekick.com/blog/files/blog3.html
+
+
+------------------------------------------
+Repository and Download
+------------------------------------------
+
+https://github.com/cloudsidekick/tclwinrm
+
+------------------------------------------
+Bug and Feature Requests
+------------------------------------------
+
+https://github.com/cloudsidekick/tclwinrm/issues
+
+------------------------------------------
+How does it work? 
+------------------------------------------
+
+The Tclwinrm extension uses the Microsoft Winrm protocol to establish an remote shell on 
+the targeted Windows server and passes a script or command to the remote shell. The connection is
+asynchronous, therefore the remote shell is established and terminated each call. 
+
+Tclwinrm uses http to connect to the Winrm port (default 5985), passing in credentials and the 
+remote shell command. The output from the command is returned back to the caller. 
+
+NOTE: currently only Basic Authentication is supporoted. Also make sure AllowUnencrypted is set to true.
+
+Quick notes on setting up the winrm service on Windows Server 2008:
+
+winrm qc -q
+winrm set winrm/config/service/auth @{Basic="true"}
+winrm set winrm/config/service @{AllowUnencrypted=True}
+
+------------------------------------------
+Installation
+------------------------------------------
+
+Requirements - tcl 8.5 with TclOO or tcl 8.6, Tcllib, TclCurl, Tdom
+
+Download the Tclwinrm tarfile Githum. Unzip the contents into  lib/tclwinrm directory in your tcl home directory. 
+Make sure you have Tcllib and TclCurl, Tdom and TclOO (for 8.5) installed too. 
+
+------------------------------------------
+Usage
+------------------------------------------
+
+To create a new connection object to the Microsoft Winrm service:
+
+::tclwinrm::connection new <protocol> <address> <port> <user> <password>
+
+	protocol	- http or https (NOTE: https has not been tested)
+	address		- FQDN or ip address of Windows Server to connect to
+	port		- port, on 2008 R2 this should be 5985 for http, before R2 it was 80
+	user		- user id with Winrs privleges, escape domain account with \
+	password	- password for user id	
+
+Example:
+
+set conn [::tclwinrm::connection new http 10.242.210.49 5985 administrator adminpass]
+
+
+To send a request to the remote shell:
+
+<connobject> rshell <script> <timeout> <debug>
+
+	connobject	- Connection object returned from new connection
+	script		- Any DOS or Powerscript script
+	timeout		- Timeout length for command
+	debug		- 0 or 1, turns verbose output off and on
+
+------------------------------------------
+TODO
+------------------------------------------
+
+	- test https, encrypted traffic
+	- support more authentication methods besides Basic
+	- bulletproof error handling
+	- destroy connection object
+	- use Tcl http package?
+
+------------------------------------------
+Samples
+------------------------------------------
+
+NOTE: these samples where tested on Windows Server 2008 and 2008 R2
+using port 5985. They were run from a linux machine.
+
+---------------------------------------------
+
+The following sample will do a simple directory listing. 
+
+package require tclwinrm
+set conn [tclwinrm::connection new http 10.242.210.49 5985 administrator adminpass]
+set command {dir c:\ }
+set output [$conn rshell $command 120 1]
+puts $output 
+
+ Volume in drive C has no label.
+ Volume Serial Number is D8D3-E1BF
+
+ Directory of c:\
+
+02/23/2011  08:42 PM    <DIR>          apps
+12/06/2009  04:30 AM    <DIR>          inetpub
+01/19/2008  11:11 AM    <DIR>          PerfLogs
+02/17/2011  10:06 PM    <DIR>          Program Files
+12/06/2009  04:38 AM    <DIR>          Program Files (x86)
+02/17/2011  09:36 PM    <DIR>          Users
+02/17/2011  09:23 PM    <DIR>          Windows
+               0 File(s)              0 bytes
+               7 Dir(s)   9,929,146,368 bytes free
+
+
+---------------------------------------------
+
+The following sample will execute a simple Powershell script. 
+
+NOTE: Powershell scripts should be Base64 encrypted, see the following:
+
+package require base64
+package require tclwinrm
+set conn [tclwinrm::connection new http 10.242.210.49 5985 administrator adminpass]
+
+set script {$strComputer = $Host
+Clear
+
+$RAM = WmiObject Win32_ComputerSystem
+$MB = 1048576
+
+"Installed Memory: " + [int]($RAM.TotalPhysicalMemory /$MB) + " MB"}
+
+set command "powershell -encodedcommand [::base64::encode -wrapchar "" [encoding convertto unicode $script]]"
+set output [$conn rshell $command 120 1]
+puts $output
+
+Installed Memory: 614 MB
