@@ -51,7 +51,7 @@ asynchronous, therefore the remote shell is established and terminated each call
 Tclwinrm uses http to connect to the Winrm port (default 5985), passing in credentials and the 
 remote shell command. The output from the command is returned back to the caller. 
 
-NOTE: currently only Basic Authentication is supporoted. Also make sure AllowUnencrypted is set to true.
+NOTE: currently only Basic Authentication is supported. Also make sure AllowUnencrypted is set to true.
 
 Quick notes on setting up the winrm service on Windows Server 2008:
 
