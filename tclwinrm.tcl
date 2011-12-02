@@ -14,7 +14,7 @@
 # limitations under the License.
 #########################################################################
 
-package provide tclwinrm 1.2
+package provide tclwinrm 1.0.2
 
 package require Tcl 8.5
 package require base64

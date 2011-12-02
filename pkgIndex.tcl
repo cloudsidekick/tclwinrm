@@ -14,4 +14,4 @@
 # limitations under the License.
 #########################################################################
 
-package ifneeded tclwinrm 1.2  [list source [file join $dir tclwinrm.tcl]]
+package ifneeded tclwinrm 1.0.2  [list source [file join $dir tclwinrm.tcl]]
