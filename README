@@ -1,4 +1,4 @@
-Tclwinrm v1.0 
+Tclwinrm v1.0.3 
 
 ------------------------------------------
 Description 
@@ -59,7 +59,7 @@ winrm qc -q
 winrm set winrm/config/service/auth @{Basic="true"}
 winrm set winrm/config/service @{AllowUnencrypted=True}
 
-NOTE: TclCurl and TclOO are no longer required in Tclwinrm version 1.2. In removing the object oriented commands, the Tclwinrm commands have changed slightly. Therefore and scripts written for pre-1.2 will need to be modified.
+NOTE: TclCurl and TclOO are no longer required in Tclwinrm version 1.0.2. In removing the object oriented commands, the Tclwinrm commands have changed slightly. Therefore and scripts written for pre-1.0.2 will need to be modified.
 
 ------------------------------------------
 Installation
