@@ -59,14 +59,16 @@ winrm qc -q
 winrm set winrm/config/service/auth @{Basic="true"}
 winrm set winrm/config/service @{AllowUnencrypted=True}
 
+NOTE: TclCurl and TclOO are no longer required in Tclwinrm version 1.2. In removing the object oriented commands, the Tclwinrm commands have changed slightly. Therefore and scripts written for pre-1.2 will need to be modified.
+
 ------------------------------------------
 Installation
 ------------------------------------------
 
-Requirements - tcl 8.5 with TclOO or tcl 8.6, Tcllib, TclCurl, Tdom
+Requirements - tcl 8.5, Tcllib and Tdom
 
 Download the Tclwinrm tarfile Githum. Unzip the contents into  lib/tclwinrm directory in your tcl home directory. 
-Make sure you have Tcllib and TclCurl, Tdom and TclOO (for 8.5) installed too. 
+Make sure you have Tcllib, Tdom installed too. 
 
 ------------------------------------------
 Usage
@@ -74,7 +76,7 @@ Usage
 
 To create a new connection object to the Microsoft Winrm service:
 
-::tclwinrm::connection new <protocol> <address> <port> <user> <password>
+tclwinrm::configure <protocol> <address> <port> <user> <password>
 
 	protocol	- http or https (NOTE: https has not been tested)
 	address		- FQDN or ip address of Windows Server to connect to
@@ -84,14 +86,13 @@ To create a new connection object to the Microsoft Winrm service:
 
 Example:
 
-set conn [::tclwinrm::connection new http 10.242.210.49 5985 administrator adminpass]
+tclwinrm::configure http 10.242.210.49 5985 administrator adminpass]
 
 
 To send a request to the remote shell:
 
-<connobject> rshell <script> <timeout> <debug>
+tclwinrm::rshell <script> <timeout> <debug>
 
-	connobject	- Connection object returned from new connection
 	script		- Any DOS or Powerscript script
 	timeout		- Timeout length for command
 	debug		- 0 or 1, turns verbose output off and on
@@ -103,8 +104,6 @@ TODO
 	- test https, encrypted traffic
 	- support more authentication methods besides Basic
 	- bulletproof error handling
-	- destroy connection object
-	- use Tcl http package?
 
 ------------------------------------------
 Samples
@@ -118,9 +117,9 @@ using port 5985. They were run from a linux machine.
 The following sample will do a simple directory listing. 
 
 package require tclwinrm
-set conn [tclwinrm::connection new http 10.242.210.49 5985 administrator adminpass]
+tclwinrm::configure http 10.242.210.49 5985 administrator adminpass
 set command {dir c:\ }
-set output [$conn rshell $command 120 1]
+set output [tclwinrm::rshell $command 120 1]
 puts $output 
 
  Volume in drive C has no label.
@@ -147,7 +146,7 @@ NOTE: Powershell scripts should be Base64 encrypted, see the following:
 
 package require base64
 package require tclwinrm
-set conn [tclwinrm::connection new http 10.242.210.49 5985 administrator adminpass]
+tclwinrm::configure http 10.242.210.49 5985 administrator adminpass
 
 set script {$strComputer = $Host
 Clear
@@ -158,7 +157,7 @@ $MB = 1048576
 "Installed Memory: " + [int]($RAM.TotalPhysicalMemory /$MB) + " MB"}
 
 set command "powershell -encodedcommand [::base64::encode -wrapchar "" [encoding convertto unicode $script]]"
-set output [$conn rshell $command 120 1]
+set output [tclwinrm::rshell $command 120 1]
 puts $output
 
 Installed Memory: 614 MB

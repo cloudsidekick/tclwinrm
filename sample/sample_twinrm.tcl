@@ -14,15 +14,18 @@
 ###  Change the following lines to use your ip address / FQDN, port if not default
 ###  WinRM enabled user and password
 
-set address 10.10.4.12
-set port 5985
-set user administrator
-set pass p@ssw0rd
+lappend auto_path ../
 
 package require tclwinrm
 package require base64
 
-set conn [tclwinrm::connection new http $address $port $user $pass]
+set address 10.12.13.14
+set port 5985
+set user administrator
+set pass adminpass
+
+
+tclwinrm::configure http $address $port $user $pass
 
 set script {$strComputer = $Host
 	$RAM = WmiObject Win32_ComputerSystem
@@ -30,11 +33,11 @@ set script {$strComputer = $Host
 	"Installed Memory: " + [int]($RAM.TotalPhysicalMemory /$MB) + " MB"
 }
 set command "powershell -encodedcommand [::base64::encode -wrapchar "" [encoding convertto unicode $script]]"
-set result [$conn rshell $command 120 0]
+set result [tclwinrm::rshell $command 120 0]
 puts \n$result
 
 set command {dir c:\ }
-set result [$conn rshell $command 120 0]
+set result [tclwinrm::rshell $command 120 0]
 puts $result
 
 ### Credit to Brandon Lawson for the following PowerShell script
@@ -92,7 +95,7 @@ set script {$server = "localhost"
 
 
 set command "powershell -encodedcommand [::base64::encode -wrapchar "" [encoding convertto unicode $script]]"
-set result [$conn rshell $command 120 0]
+set result [tclwinrm::rshell $command 120 0]
 puts $result
 
 
