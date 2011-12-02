@@ -64,7 +64,8 @@ proc tclwinrm::configure {protocol address port u p} {
 proc tclwinrm::Perform_query {url header soap timeout} {
         variable debug
 	variable http_err_code
-	catch {set token [::http::geturl $url/wsman -type "application/soap+xml;charset=UTF-8" -headers $header -timeout [expr $timeout * 1000] -query $soap]} error_code
+	set timeout [expr {$timeout * 1000}]
+	catch {set token [::http::geturl $url/wsman -type "application/soap+xml;charset=UTF-8" -headers $header -timeout $timeout -query $soap]} error_code
 
 
         if {[string match "::http::*" $error_code] == 0} {
@@ -108,7 +109,7 @@ proc tclwinrm::rshell {command {timeout 120} {debug_user 0}} {
 	
 	set debug $debug_user
 	set output_buffer ""
-
+	
 	set auth "Basic [base64::encode $user:$pwd]"
 	lappend header Authorization $auth
 
@@ -257,12 +258,12 @@ proc tclwinrm::rshell {command {timeout 120} {debug_user 0}} {
 		set states [$root selectNodes {//*[local-name()='CommandState']}]
 		foreach state_node $states {
 			set state [$state_node  getAttribute State]
-			if {"$state" == "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/CommandState/Done"} {
+			if {"$state" eq "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/CommandState/Done"} {
 				break
 			}
 		}
 		set stream_nodes [$root selectNodes {//*[local-name()='Stream']}]
-		if {"$state" == "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/CommandState/Done"} {
+		if {"$state" eq "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/CommandState/Done"} {
 			set exit_codes [$root selectNodes {//*[local-name()='ExitCode']}]
 			foreach exit_code_node $exit_codes {
 				#walk to the last one
@@ -317,7 +318,7 @@ proc tclwinrm::rshell {command {timeout 120} {debug_user 0}} {
 	regsub -all "_x000D__x000A_" $output_buffer "" output_buffer
 	regsub -all "&lt;" $output_buffer "<" output_buffer
 	regsub -all "</S><S S=\"Error\">" $output_buffer "" output_buffer
-	if {"$exit_code" == "1"} {
+	if {"$exit_code" eq "1"} {
 		return -code error -level 1 "tclwinrm command error:\n$command\n$output_buffer"
 	} else {
 		return $output_buffer
